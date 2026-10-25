@@ -205,10 +205,21 @@ function ask(question) {
 // ---------- media ----------
 
 function findFfmpeg() {
+  // winget installs into Packages\Gyan.FFmpeg_*\ffmpeg-*\bin and only new shells see the PATH change
+  const wingetPackages = path.join(process.env.LOCALAPPDATA || '', 'Microsoft', 'WinGet', 'Packages');
+  const wingetBins = [];
+  try {
+    for (const pkg of fs.readdirSync(wingetPackages).filter((d) => d.startsWith('Gyan.FFmpeg'))) {
+      for (const dir of fs.readdirSync(path.join(wingetPackages, pkg))) {
+        wingetBins.push(path.join(wingetPackages, pkg, dir, 'bin', 'ffmpeg.exe'));
+      }
+    }
+  } catch { /* no winget packages folder */ }
   const options = [
     process.env.FFMPEG,
     'ffmpeg',
     path.join(process.env.LOCALAPPDATA || '', 'Microsoft', 'WinGet', 'Links', 'ffmpeg.exe'),
+    ...wingetBins,
   ].filter(Boolean);
   for (const bin of options) {
     const r = spawnSync(bin, ['-version'], { stdio: 'ignore' });
