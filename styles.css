@@ -406,6 +406,15 @@ body::after {
 /* ---------- 7. Songs ---------- */
 .songs { list-style: none; margin: 0; padding: 0; display: grid; gap: 20px; }
 .song { padding: 18px 16px 16px; text-align: left; }
+.song-head { display: flex; align-items: center; gap: 14px; }
+.song-cover {
+  flex: none;
+  width: 64px; height: 64px;
+  border-radius: 12px;
+  object-fit: cover;
+  box-shadow: 0 4px 10px rgba(90, 62, 75, .18);
+}
+.song-text { min-width: 0; }
 .song h3 { font-size: 18px; line-height: 1.3; color: var(--ink); }
 .song .artist { font-size: 15px; color: var(--ink-soft); }
 .song-note {

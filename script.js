@@ -217,7 +217,7 @@ const gate = {
 function renderSite(site, urls) {
   envelope.init(site.letter, site.clip, urls, site.envelopeGif, site.openingGif, site.companionGif);
   photos.render(site.photos, urls);
-  songs.render(site.songs);
+  songs.render(site.songs, urls);
   jar.init(site.reasons);
   scratch.init(site.voucher);
 }
@@ -629,13 +629,24 @@ const photos = {
 /* ---------- 5. Songs ---------- */
 
 const songs = {
-  render(list) {
+  render(list, urls) {
     const ul = $('#songs');
     ul.replaceChildren();
     for (const s of list) {
       const li = el('li', 'song card reveal');
-      li.appendChild(el('h3', '', s.title));
-      if (s.artist) li.appendChild(el('p', 'artist', s.artist));
+      // Header: optional small album cover beside the title and artist
+      const head = el('div', 'song-head');
+      if (s.cover) {
+        const img = el('img', 'song-cover');
+        img.src = urls[s.cover];
+        img.alt = '';
+        head.appendChild(img);
+      }
+      const text = el('div', 'song-text');
+      text.appendChild(el('h3', '', s.title));
+      if (s.artist) text.appendChild(el('p', 'artist', s.artist));
+      head.appendChild(text);
+      li.appendChild(head);
       if (s.note) {
         const note = el('p', 'song-note', s.note);
         note.prepend(icon('heart'));
