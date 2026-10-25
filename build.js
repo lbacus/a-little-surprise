@@ -86,6 +86,7 @@ async function main() {
   const site = {
     envelopeGif: content.envelopeGif ? addMedia(...readMediaImage(content.envelopeGif)) : null,
     openingGif: content.openingGif ? prepareOpeningGif(content.openingGif, addMedia) : null,
+    companionGif: content.companionGif ? addMedia(...readMediaImage(content.companionGif)) : null,
     letter: content.letter,
     clip: clipOut,
     photos,

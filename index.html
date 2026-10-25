@@ -73,15 +73,19 @@
     <section class="section envelope-section" id="s-envelope">
       <p class="script kicker">Something for you…</p>
       <img class="env-gif" id="env-gif" alt="Two cats hugging" hidden>
-      <button class="envelope" id="envelope" type="button" aria-label="Open the envelope">
-        <span class="env-back"></span>
-        <span class="env-paper"></span>
-        <span class="env-front"><span class="script env-to">For Sofia</span></span>
-        <span class="env-flap"></span>
-        <svg class="env-seal" aria-hidden="true"><use href="#i-heart"/></svg>
-        <span class="env-fx" aria-hidden="true"></span>
-      </button>
-      <p class="tap-hint" id="tap-hint">Tap to open</p>
+      <div class="env-stage">
+        <!-- Optional companion GIF that floats down and hovers at the envelope's corner -->
+        <img class="companion" id="companion" alt="" aria-hidden="true" hidden>
+        <button class="envelope" id="envelope" type="button" aria-label="Open the envelope">
+          <span class="env-back"></span>
+          <span class="env-paper"></span>
+          <span class="env-front"><span class="script env-to">For Sofia</span></span>
+          <span class="env-flap"></span>
+          <svg class="env-seal" aria-hidden="true"><use href="#i-heart"/></svg>
+          <span class="env-fx" aria-hidden="true"></span>
+        </button>
+        <p class="tap-hint" id="tap-hint">Tap to open</p>
+      </div>
 
       <article class="card letter" id="letter" hidden></article>
       <div class="clip" id="clip" hidden></div>

@@ -13,6 +13,10 @@ module.exports = {
   // shows. Tapping it skips. File in private/media/ ('' for none).
   openingGif: '',
 
+  // Floats down from the top when the page opens, bobs at the envelope's top-right corner,
+  // then floats away when she opens it. Best with a transparent GIF. File in private/media/ ('' for none).
+  companionGif: '',
+
   letter: {
     greeting: 'Dear Sofia,',
     paragraphs: [

@@ -204,6 +204,7 @@ const gate = {
       document.body.classList.replace('locked', 'unlocked');
       $('#site').hidden = false;
       window.scrollTo(0, 0);
+      envelope.companionArrive();
     };
     if (instant) return finish();
     $('#gate-card').classList.add('opening');
@@ -215,7 +216,7 @@ const gate = {
 };
 
 function renderSite(site, urls) {
-  envelope.init(site.letter, site.clip, urls, site.envelopeGif, site.openingGif);
+  envelope.init(site.letter, site.clip, urls, site.envelopeGif, site.openingGif, site.companionGif);
   photos.render(site.photos, urls);
   songs.render(site.songs);
   jar.init(site.reasons);
@@ -225,7 +226,8 @@ function renderSite(site, urls) {
 /* ---------- 3. Envelope, letter, clip ---------- */
 
 const envelope = {
-  init(letter, clip, urls, gifId, openingGif) {
+  init(letter, clip, urls, gifId, openingGif, companionId) {
+    this.companionUrl = companionId ? urls[companionId] : null;
     if (gifId) {
       const gif = $('#env-gif');
       gif.src = urls[gifId];
@@ -262,6 +264,7 @@ const envelope = {
     btn.setAttribute('aria-label', 'Envelope, opened');
     btn.setAttribute('aria-disabled', 'true');
     $('#env-gif').classList.add('gone');
+    this.companionLeave();
 
     if (calm) {
       btn.classList.add('open');
@@ -309,7 +312,7 @@ const envelope = {
     const from = paper.getBoundingClientRect();
     const ghost = this.pinnedCopy(btn);
 
-    for (const id of ['#env-gif', '#envelope', '#tap-hint']) $(id).hidden = true;
+    for (const sel of ['#env-gif', '.env-stage']) $(sel).hidden = true;
     letter.classList.add('flying');
     this.showContents();
     // The voice note and scroll cue fade in once the letter has landed
@@ -362,6 +365,51 @@ const envelope = {
     });
     document.body.appendChild(ghost);
     return ghost;
+  },
+
+  // The companion drifts down from above the screen on arrival, swaying, then bobs at
+  // the envelope's corner
+  companionArrive() {
+    const k = $('#companion');
+    if (!this.companionUrl || !k.hidden) return;
+    k.src = this.companionUrl;
+    k.hidden = false;
+    if (reduceMotion.matches) {
+      k.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 400 });
+      return;
+    }
+    const fromY = -(k.getBoundingClientRect().bottom + 30);
+    k.animate([
+      { transform: `translate(-30px, ${fromY}px) rotate(-8deg)` },
+      { transform: `translate(20px, ${fromY * 0.55}px) rotate(7deg)`, offset: 0.35 },
+      { transform: `translate(-12px, ${fromY * 0.2}px) rotate(-5deg)`, offset: 0.7 },
+      { transform: 'translate(0px, 0px) rotate(0deg)' },
+    ], { duration: 2600, delay: 300, easing: 'cubic-bezier(.3,.6,.3,1)', fill: 'backwards' })
+      .onfinish = () => k.classList.add('bobbing');
+  },
+
+  // When the envelope opens, the companion floats up and away. It is pinned to the screen
+  // first so removing the envelope space later can't move it.
+  companionLeave() {
+    const k = $('#companion');
+    if (k.hidden) return;
+    const start = getComputedStyle(k).transform;   // wherever it is mid-bob or mid-arrival
+    k.classList.remove('bobbing');
+    k.getAnimations().forEach((a) => a.cancel());
+    const r = k.getBoundingClientRect();
+    Object.assign(k.style, { left: r.left + 'px', top: r.top + 'px', width: r.width + 'px' });
+    k.classList.add('flying-away');
+    document.body.appendChild(k);
+    const frames = reduceMotion.matches
+      ? [{ opacity: 1 }, { opacity: 0 }]
+      : [
+        { transform: start === 'none' ? 'none' : start, opacity: 1 },
+        { transform: 'translate(30px, -50px) rotate(6deg)', opacity: 1, offset: 0.25 },
+        { transform: `translate(70px, ${-(r.bottom * 0.6)}px) rotate(10deg)`, opacity: 1, offset: 0.7 },
+        { transform: `translate(90px, ${-(r.bottom + 60)}px) rotate(12deg)`, opacity: 0 },
+      ];
+    k.animate(frames, { duration: reduceMotion.matches ? 400 : 1800, easing: 'cubic-bezier(.45,0,.6,.6)', fill: 'forwards' })
+      .onfinish = () => { k.hidden = true; };
   },
 
   // Pops the GIF up in the middle of the screen, plays it once, then fades it away.

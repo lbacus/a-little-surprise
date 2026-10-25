@@ -207,7 +207,7 @@ body::after {
   display: block;
   width: min(300px, 80vw);
   aspect-ratio: 3 / 2;
-  margin: 110px auto 0;           /* room for the flap and paper when open */
+  margin: 0 auto;
   padding: 0;
   border: 0;
   background: none;
@@ -230,7 +230,27 @@ body::after {
   transition: opacity 800ms var(--ease), transform 800ms var(--ease);
 }
 .env-gif.gone { opacity: 0; transform: translateY(-24px) scale(.92); }
-.env-gif:not([hidden]) + .envelope { margin-top: 44px; }
+/* Holds the envelope, its tap hint and the companion; the top margin leaves room for the open flap */
+.env-stage { position: relative; width: min(300px, 80vw); margin: 110px auto 0; }
+.env-gif:not([hidden]) + .env-stage { margin-top: 44px; }
+
+/* Companion GIF (e.g. a floating character) hovering at the envelope's top-right corner.
+   script.js floats it down on arrival and up and away when the envelope opens. */
+.companion {
+  position: absolute;
+  z-index: 7;
+  width: 104px;
+  height: auto;
+  right: -36px;
+  top: -70px;
+  pointer-events: none;
+}
+.companion.bobbing { animation: bob 3.2s ease-in-out infinite; }
+.companion.flying-away { position: fixed; right: auto; z-index: 30; }   /* under the kiss blur */
+@keyframes bob {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50%      { transform: translateY(-9px) rotate(3deg); }
+}
 .env-back  { inset: 0; border-radius: 14px; background: #F7C0A2; z-index: 0; }
 .env-paper {
   left: 7%; right: 7%; top: 8%; height: 84%;
@@ -573,6 +593,7 @@ body::after {
   .note { animation: fade 300ms ease both; }
   .kiss-card { animation: fade 300ms ease both; }
   .env-gif.gone { transform: none; }
+  .companion.bobbing { animation: none; }
   .kiss-pop.leaving .kiss-card { animation: fade-out 300ms ease both; }
   .reveal, .polaroid.reveal { transform: rotate(var(--tilt, 0deg)); transition: opacity 400ms ease; }
 }

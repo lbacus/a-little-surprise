@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" data-build="63c24eeacf">
+<html lang="en" data-build="3f8ed29f9d">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -12,7 +12,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Quicksand:wght@400;500;600;700&display=swap">
-  <link rel="stylesheet" href="styles.css?v=63c24eeacf">
+  <link rel="stylesheet" href="styles.css?v=3f8ed29f9d">
 </head>
 <body class="locked">
 
@@ -73,15 +73,19 @@
     <section class="section envelope-section" id="s-envelope">
       <p class="script kicker">Something for you…</p>
       <img class="env-gif" id="env-gif" alt="Two cats hugging" hidden>
-      <button class="envelope" id="envelope" type="button" aria-label="Open the envelope">
-        <span class="env-back"></span>
-        <span class="env-paper"></span>
-        <span class="env-front"><span class="script env-to">For Sofia</span></span>
-        <span class="env-flap"></span>
-        <svg class="env-seal" aria-hidden="true"><use href="#i-heart"/></svg>
-        <span class="env-fx" aria-hidden="true"></span>
-      </button>
-      <p class="tap-hint" id="tap-hint">Tap to open</p>
+      <div class="env-stage">
+        <!-- Optional companion GIF that floats down and hovers at the envelope's corner -->
+        <img class="companion" id="companion" alt="" aria-hidden="true" hidden>
+        <button class="envelope" id="envelope" type="button" aria-label="Open the envelope">
+          <span class="env-back"></span>
+          <span class="env-paper"></span>
+          <span class="env-front"><span class="script env-to">For Sofia</span></span>
+          <span class="env-flap"></span>
+          <svg class="env-seal" aria-hidden="true"><use href="#i-heart"/></svg>
+          <span class="env-fx" aria-hidden="true"></span>
+        </button>
+        <p class="tap-hint" id="tap-hint">Tap to open</p>
+      </div>
 
       <article class="card letter" id="letter" hidden></article>
       <div class="clip" id="clip" hidden></div>
@@ -154,7 +158,7 @@
 
   <div class="burst" id="burst" aria-hidden="true"></div>
 
-  <script src="date.js?v=63c24eeacf"></script>
-  <script src="script.js?v=63c24eeacf"></script>
+  <script src="date.js?v=3f8ed29f9d"></script>
+  <script src="script.js?v=3f8ed29f9d"></script>
 </body>
 </html>
