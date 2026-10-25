@@ -215,7 +215,7 @@ const gate = {
 };
 
 function renderSite(site, urls) {
-  envelope.init(site.letter, site.clip, urls, site.envelopeGif);
+  envelope.init(site.letter, site.clip, urls, site.envelopeGif, site.openingGif);
   photos.render(site.photos, urls);
   songs.render(site.songs);
   jar.init(site.reasons);
@@ -225,12 +225,13 @@ function renderSite(site, urls) {
 /* ---------- 3. Envelope, letter, clip ---------- */
 
 const envelope = {
-  init(letter, clip, urls, gifId) {
+  init(letter, clip, urls, gifId, openingGif) {
     if (gifId) {
       const gif = $('#env-gif');
       gif.src = urls[gifId];
       gif.hidden = false;
     }
+    this.openingGif = openingGif ? { url: urls[openingGif.media], ms: openingGif.ms } : null;
     this.renderLetter(letter);
     player.render(clip, urls);
     const btn = $('#envelope');
@@ -251,9 +252,10 @@ const envelope = {
   },
 
   // Timeline (ms after the tap): seal pops 0–260 · flap opens + hearts explode across the
-  // screen 260 · letter appears 1100 · page scrolls to the letter 1500.
-  // Reduced motion: just a quick fade.
-  open() {
+  // screen 260 · kiss GIF pops up 500 and plays once (tap skips it) · letter appears
+  // after it fades (≈3.6s; 1100 without a GIF) · page scrolls to the letter 400 later.
+  // Reduced motion: no pop or explosion, only fades.
+  async open() {
     const btn = $('#envelope');
     const calm = reduceMotion.matches;
     btn.setAttribute('aria-label', 'Envelope, opened');
@@ -271,17 +273,47 @@ const envelope = {
       }, 260);
     }
 
-    setTimeout(() => {
-      $('#letter').hidden = false;
-      $('#clip').hidden = false;
-      $('#scroll-cue').hidden = false;
-      $('#rest').hidden = false;
-      scratch.resize();
-      reveal.watch();
-    }, calm ? 150 : 1100);
+    if (this.openingGif) await this.playOpeningGif(calm ? 150 : 500);
+    else await new Promise((r) => setTimeout(r, calm ? 150 : 1100));
+
+    $('#letter').hidden = false;
+    $('#clip').hidden = false;
+    $('#scroll-cue').hidden = false;
+    $('#rest').hidden = false;
+    scratch.resize();
+    reveal.watch();
     setTimeout(() => {
       $('#letter').scrollIntoView({ behavior: calm ? 'auto' : 'smooth', block: 'start' });
-    }, calm ? 200 : 1500);
+    }, calm ? 50 : 400);
+  },
+
+  // Pops the GIF up in the middle of the screen, plays it once, then fades it away.
+  // Resolves once it has gone; tapping it skips to the end.
+  playOpeningGif(delay) {
+    return new Promise((resolve) => {
+      const pop = $('#kiss-pop');
+      const card = $('#kiss-card');
+      let finished = false;
+      let timer;
+      const finish = () => {
+        if (finished) return;
+        finished = true;
+        clearTimeout(timer);
+        pop.classList.add('leaving');
+        setTimeout(() => {
+          pop.hidden = true;
+          pop.classList.remove('leaving');
+          $('#kiss-img').removeAttribute('src');
+          resolve();
+        }, 350);
+      };
+      setTimeout(() => {
+        $('#kiss-img').src = this.openingGif.url;    // set now so it starts from frame one
+        pop.hidden = false;
+        card.addEventListener('click', finish, { once: true });
+        timer = setTimeout(finish, this.openingGif.ms);
+      }, delay);
+    });
   },
 
   // A small ring of sparkles where the heart seal was
