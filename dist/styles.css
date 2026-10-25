@@ -227,9 +227,9 @@ body::after {
   background: #fff;
   border-radius: 22px;
   box-shadow: var(--shadow);
-  transition: opacity 400ms var(--ease);
+  transition: opacity 800ms var(--ease), transform 800ms var(--ease);
 }
-.env-gif.gone { opacity: 0; }
+.env-gif.gone { opacity: 0; transform: translateY(-24px) scale(.92); }
 .env-gif:not([hidden]) + .envelope { margin-top: 44px; }
 .env-back  { inset: 0; border-radius: 14px; background: #F7C0A2; z-index: 0; }
 .env-paper {
@@ -507,9 +507,9 @@ body::after {
   -webkit-backdrop-filter: blur(10px);   /* Safari / iPhone */
   backdrop-filter: blur(10px);           /* blurs the envelope behind the GIF */
   pointer-events: none;
-  animation: fade 300ms ease both;
+  animation: blur-in 400ms ease both;
 }
-.kiss-pop.leaving { animation: fade-out 350ms ease both; }
+.kiss-pop.leaving { animation: blur-out 700ms ease both; }
 .kiss-card {
   pointer-events: auto;
   padding: 10px;
@@ -520,14 +520,20 @@ body::after {
   cursor: pointer;
   animation: kiss-in 450ms var(--ease) both;
 }
-.kiss-pop.leaving .kiss-card { animation: kiss-out 350ms var(--ease) both; }
 .kiss-card img { width: min(220px, 62vw); height: auto; border-radius: 18px; }
 @keyframes kiss-in {
   0%   { opacity: 0; transform: scale(.4) rotate(-6deg); }
   70%  { opacity: 1; transform: scale(1.06) rotate(1deg); }
   100% { opacity: 1; transform: none; }
 }
-@keyframes kiss-out { to { opacity: 0; transform: scale(.9); } }
+@keyframes blur-in {
+  from { background-color: rgba(255, 248, 240, 0); -webkit-backdrop-filter: blur(0px); backdrop-filter: blur(0px); }
+  to   { background-color: rgba(255, 248, 240, .45); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); }
+}
+@keyframes blur-out {
+  from { background-color: rgba(255, 248, 240, .45); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); }
+  to   { background-color: rgba(255, 248, 240, 0); -webkit-backdrop-filter: blur(0px); backdrop-filter: blur(0px); }
+}
 @keyframes fade-out { to { opacity: 0; } }
 
 /* ---------- 10. Hearts burst ---------- */
@@ -566,6 +572,7 @@ body::after {
   .letter, .clip, .scroll-cue { animation: fade 300ms ease both; }
   .note { animation: fade 300ms ease both; }
   .kiss-card { animation: fade 300ms ease both; }
+  .env-gif.gone { transform: none; }
   .kiss-pop.leaving .kiss-card { animation: fade-out 300ms ease both; }
   .reveal, .polaroid.reveal { transform: rotate(var(--tilt, 0deg)); transition: opacity 400ms ease; }
 }

@@ -274,8 +274,13 @@ const envelope = {
       }, 260);
     }
 
-    if (this.openingGif) await this.playOpeningGif(calm ? 150 : 500);
-    else await new Promise((r) => setTimeout(r, calm ? 150 : 510));
+    if (this.openingGif) {
+      await this.playOpeningGif(calm ? 150 : 500);
+      // Let the kiss card sink into the envelope before the paper comes out
+      if (!calm) await new Promise((r) => setTimeout(r, 300));
+    } else {
+      await new Promise((r) => setTimeout(r, calm ? 150 : 510));
+    }
 
     if (calm) {
       this.showContents();
@@ -360,9 +365,11 @@ const envelope = {
   },
 
   // Pops the GIF up in the middle of the screen, plays it once, then fades it away.
-  // Resolves as soon as it starts fading (so the next motion overlaps the fade);
+  // On the way out the card shrinks and sinks into the envelope while the blur eases off.
+  // Resolves as soon as it starts leaving (so the next motion overlaps it);
   // tapping it skips to the end.
   playOpeningGif(delay) {
+    const LEAVE_MS = 700;
     return new Promise((resolve) => {
       const pop = $('#kiss-pop');
       const card = $('#kiss-card');
@@ -373,12 +380,24 @@ const envelope = {
         finished = true;
         clearTimeout(timer);
         pop.classList.add('leaving');
+        if (!reduceMotion.matches) {
+          const c = card.getBoundingClientRect();
+          const e = $('#envelope').getBoundingClientRect();
+          const dx = (e.left + e.width / 2) - (c.left + c.width / 2);
+          const dy = (e.top + e.height * 0.35) - (c.top + c.height / 2);
+          card.animate([
+            { transform: 'translate(0, 0) scale(1)', opacity: 1 },
+            { transform: `translate(${dx * 0.3}px, ${dy * 0.3 - 10}px) scale(.85)`, opacity: 1, offset: 0.3 },
+            { transform: `translate(${dx}px, ${dy}px) scale(.15)`, opacity: 0 },
+          ], { duration: 600, easing: 'cubic-bezier(.5,0,.3,1)', fill: 'forwards' });
+        }
         resolve();
         setTimeout(() => {
           pop.hidden = true;
           pop.classList.remove('leaving');
+          card.getAnimations().forEach((a) => { if (!(a instanceof CSSAnimation)) a.cancel(); });
           $('#kiss-img').removeAttribute('src');
-        }, 350);
+        }, LEAVE_MS);
       };
       setTimeout(() => {
         $('#kiss-img').src = this.openingGif.url;    // set now so it starts from frame one
