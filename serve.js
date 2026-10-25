@@ -27,11 +27,27 @@ const TYPES = {
 
 function handler(req, res) {
   const urlPath = decodeURIComponent(new URL(req.url, 'http://x').pathname);
+  const who = req.socket.remoteAddress.replace('::ffff:', '');
+
+  // Diagnostics sent by script.js while previewing (see debugLog there)
+  if (req.method === 'POST' && urlPath === '/__log') {
+    let body = '';
+    req.on('data', (chunk) => { body += chunk; if (body.length > 10000) req.destroy(); });
+    req.on('end', () => {
+      console.log(`[page ${who}] ${body}`);
+      res.writeHead(204);
+      res.end();
+    });
+    return;
+  }
+
   const file = path.normalize(path.join(DIST, urlPath === '/' ? 'index.html' : urlPath));
   if (!file.startsWith(DIST + path.sep) || !fs.existsSync(file) || fs.statSync(file).isDirectory()) {
+    console.log(`[${who}] ${req.method} ${urlPath} 404`);
     res.writeHead(404, { 'Content-Type': 'text/plain' });
     return res.end('Not found');
   }
+  console.log(`[${who}] ${req.method} ${urlPath} 200`);
   res.writeHead(200, {
     'Content-Type': TYPES[path.extname(file)] || 'application/octet-stream',
     'Cache-Control': 'no-store',
