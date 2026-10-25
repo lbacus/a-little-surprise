@@ -216,6 +216,21 @@ body::after {
   filter: drop-shadow(0 12px 18px rgba(194, 69, 110, .18));
 }
 .envelope > * { position: absolute; display: block; }
+
+/* Optional GIF above the closed envelope; fades as the flap opens (space is kept so nothing jumps) */
+.env-gif {
+  display: block;
+  width: min(220px, 58vw);
+  height: auto;
+  margin: 6px auto 0;
+  padding: 6px;
+  background: #fff;
+  border-radius: 22px;
+  box-shadow: var(--shadow);
+  transition: opacity 400ms var(--ease);
+}
+.env-gif.gone { opacity: 0; }
+.env-gif:not([hidden]) + .envelope { margin-top: 44px; }
 .env-back  { inset: 0; border-radius: 14px; background: #F7C0A2; z-index: 0; }
 .env-paper {
   left: 7%; right: 7%; top: 8%; height: 84%;

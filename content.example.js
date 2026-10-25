@@ -6,6 +6,9 @@ module.exports = {
   // Shown on the locked screen BEFORE the password, so it is public. Keep it vague.
   hint: 'SAMPLE hint — the day it all started (day and month)',
 
+  // Shown above the closed envelope, fades away when she opens it. File in private/media/ ('' for none).
+  envelopeGif: '',
+
   letter: {
     greeting: 'Dear Sofia,',
     paragraphs: [

@@ -215,7 +215,7 @@ const gate = {
 };
 
 function renderSite(site, urls) {
-  envelope.init(site.letter, site.clip, urls);
+  envelope.init(site.letter, site.clip, urls, site.envelopeGif);
   photos.render(site.photos, urls);
   songs.render(site.songs);
   jar.init(site.reasons);
@@ -225,7 +225,12 @@ function renderSite(site, urls) {
 /* ---------- 3. Envelope, letter, clip ---------- */
 
 const envelope = {
-  init(letter, clip, urls) {
+  init(letter, clip, urls, gifId) {
+    if (gifId) {
+      const gif = $('#env-gif');
+      gif.src = urls[gifId];
+      gif.hidden = false;
+    }
     this.renderLetter(letter);
     player.render(clip, urls);
     const btn = $('#envelope');
@@ -248,6 +253,7 @@ const envelope = {
   open() {
     const btn = $('#envelope');
     btn.classList.add('open');
+    $('#env-gif').classList.add('gone');
     btn.setAttribute('aria-label', 'Envelope, opened');
     btn.setAttribute('aria-disabled', 'true');
     const wait = reduceMotion.matches ? 150 : 950;

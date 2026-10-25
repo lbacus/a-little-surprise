@@ -84,6 +84,7 @@ async function main() {
   }));
 
   const site = {
+    envelopeGif: content.envelopeGif ? addMedia(...readMediaImage(content.envelopeGif)) : null,
     letter: content.letter,
     clip: clipOut,
     photos,
@@ -268,6 +269,17 @@ function jpegOrientation(buf) {
     i += 2 + size;
   }
   return 1;
+}
+
+// An image used as-is from private/media/ (no resizing, so GIFs keep their animation)
+function readMediaImage(file) {
+  const src = path.join(PRIV, 'media', file);
+  if (!fs.existsSync(src)) throw new Error(`Not found: private/media/${file}`);
+  const type = MIME[path.extname(file).toLowerCase()];
+  if (!type || !type.startsWith('image/')) throw new Error(`${file}: not a supported image type`);
+  const bytes = fs.readFileSync(src);
+  if (bytes.length > 2 * 1024 * 1024) warn(`${file} is ${mb(bytes.length)}, which slows down the first load`);
+  return [bytes, type];
 }
 
 function prepareClip(clip) {
