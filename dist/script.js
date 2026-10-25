@@ -234,7 +234,8 @@ const envelope = {
     }
     this.openingGif = openingGif ? { url: urls[openingGif.media], ms: openingGif.ms } : null;
     this.renderLetter(letter);
-    player.render(clip, urls);
+    this.hasClip = !!clip;
+    if (clip) player.render(clip, urls);
     const btn = $('#envelope');
     btn.addEventListener('click', () => this.open(), { once: true });
   },
@@ -295,7 +296,7 @@ const envelope = {
 
   showContents() {
     $('#letter').hidden = false;
-    $('#clip').hidden = false;
+    $('#clip').hidden = !this.hasClip;
     $('#scroll-cue').hidden = false;
     $('#rest').hidden = false;
     scratch.resize();
@@ -660,7 +661,7 @@ const songs = {
         frame.allow = 'clipboard-write; encrypted-media; fullscreen; picture-in-picture';
         li.appendChild(frame);
       } else {
-        li.appendChild(el('div', 'spotify-missing', 'SAMPLE — the Spotify player appears here once you add a link'));
+        li.appendChild(el('div', 'spotify-missing', 'Spotify link missing'));
       }
       ul.appendChild(li);
     }

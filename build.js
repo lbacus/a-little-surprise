@@ -68,13 +68,17 @@ async function main() {
     caption: p.caption || '',
   }));
 
-  const clip = prepareClip(content.clip);
-  const clipOut = {
-    type: content.clip.type,
-    label: content.clip.label || '',
-    media: addMedia(clip.bytes, clip.type),
-    poster: content.clip.poster ? addPhoto(content.clip.poster) : null,
-  };
+  // clip: null in content.js means no voice note / video at all
+  let clipOut = null;
+  if (content.clip) {
+    const clip = prepareClip(content.clip);
+    clipOut = {
+      type: content.clip.type,
+      label: content.clip.label || '',
+      media: addMedia(clip.bytes, clip.type),
+      poster: content.clip.poster ? addPhoto(content.clip.poster) : null,
+    };
+  }
 
   const songs = content.songs.map((s) => ({
     title: s.title || '',
@@ -162,8 +166,8 @@ function loadContent() {
   const c = require(file);
   const need = (cond, msg) => { if (!cond) throw new Error('content.js: ' + msg); };
   need(c.letter && Array.isArray(c.letter.paragraphs), 'letter.paragraphs must be a list');
-  need(c.clip && ['audio', 'video'].includes(c.clip.type), "clip.type must be 'audio' or 'video'");
-  need(c.clip.file, 'clip.file is missing');
+  need(!c.clip || ['audio', 'video'].includes(c.clip.type), "clip.type must be 'audio' or 'video' (or set clip: null)");
+  need(!c.clip || c.clip.file, 'clip.file is missing');
   need(Array.isArray(c.photos), 'photos must be a list');
   need(Array.isArray(c.songs), 'songs must be a list');
   need(Array.isArray(c.reasons) && c.reasons.length > 0, 'reasons must be a non-empty list');
