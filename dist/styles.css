@@ -239,7 +239,7 @@ body::after {
   background-clip: content-box;
   padding: 18px 16px;
   z-index: 2;
-  transition: transform 550ms var(--ease) 250ms;
+  transition: transform 550ms var(--ease);
 }
 .env-front {
   inset: 0;
@@ -270,6 +270,8 @@ body::after {
   animation: beat 1.8s ease-in-out infinite;
 }
 .envelope.open { cursor: default; }
+/* Pinned copy that fades out behind the letter as it flies out (script.js) */
+.envelope.env-ghost { position: fixed; margin: 0; z-index: -1; pointer-events: none; }
 .envelope.open .env-flap  { transform: rotateX(180deg); z-index: 1; }
 .envelope.open .env-seal  { opacity: 0; animation: none; }
 .envelope.popping .env-seal { animation: seal-pop 260ms var(--ease) forwards; }
@@ -282,7 +284,7 @@ body::after {
 /* Layer for the seal sparkles and floating hearts (filled by script.js) */
 .env-fx { inset: 0; z-index: 6; pointer-events: none; overflow: visible; }
 .env-fx svg { position: absolute; width: 16px; height: 16px; }
-.envelope.open .env-paper { transform: translateY(-46%); }
+.envelope.paper-out .env-paper { transform: translateY(-46%); }   /* timed by script.js */
 
 .tap-hint { margin-top: 18px; color: var(--ink-soft); font-weight: 600; transition: opacity 300ms; }
 .envelope.open + .tap-hint { opacity: 0; }
@@ -299,6 +301,7 @@ body::after {
 .letter .greet, .letter .sign { font-family: var(--font-script); font-size: 30px; color: var(--rose-deep); }
 .letter p.para { margin-top: 32px; }
 .letter .sign { margin-top: 32px; text-align: right; }
+.letter.flying { animation: none; }   /* script.js animates it out of the envelope */
 @keyframes slide-up { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: none; } }
 
 .scroll-cue {
@@ -556,7 +559,7 @@ body::after {
   @keyframes twinkle { 0%, 100% { opacity: .15; } 50% { opacity: .4; } }
 
   .env-flap, .env-paper, .pl-shackle { transition: none; }
-  .envelope.open .env-paper { transform: none; }
+  .envelope.paper-out .env-paper { transform: none; }
   .env-seal, .scroll-cue svg, .clip.playing .play-heart .heart { animation: none; }
   .shake { animation: fade-blink 300ms ease; }
   .jar.wiggle { animation: none; }

@@ -252,9 +252,10 @@ const envelope = {
   },
 
   // Timeline (ms after the tap): seal pops 0–260 · flap opens + hearts explode across the
-  // screen 260 · kiss GIF pops up 500 and plays once (tap skips it) · letter appears
-  // after it fades (≈3.6s; 1100 without a GIF) · page scrolls to the letter 400 later.
-  // Reduced motion: no pop or explosion, only fades.
+  // screen 260 · kiss GIF pops up 500 and plays once (tap skips it) · as it starts fading,
+  // the paper slides out of the envelope · 450 later the letter card grows out of the paper
+  // and glides into place while the page scrolls with it and the envelope fades away.
+  // Without a GIF the paper slides out at 510. Reduced motion: no pop or explosion, only fades.
   async open() {
     const btn = $('#envelope');
     const calm = reduceMotion.matches;
@@ -274,21 +275,93 @@ const envelope = {
     }
 
     if (this.openingGif) await this.playOpeningGif(calm ? 150 : 500);
-    else await new Promise((r) => setTimeout(r, calm ? 150 : 1100));
+    else await new Promise((r) => setTimeout(r, calm ? 150 : 510));
 
+    if (calm) {
+      this.showContents();
+      $('#letter').scrollIntoView({ behavior: 'auto', block: 'start' });
+      return;
+    }
+    btn.classList.add('paper-out');
+    setTimeout(() => this.flyOut(btn), 450);
+  },
+
+  showContents() {
     $('#letter').hidden = false;
     $('#clip').hidden = false;
     $('#scroll-cue').hidden = false;
     $('#rest').hidden = false;
     scratch.resize();
     reveal.watch();
-    setTimeout(() => {
-      $('#letter').scrollIntoView({ behavior: calm ? 'auto' : 'smooth', block: 'start' });
-    }, calm ? 50 : 400);
+  },
+
+  // The envelope space is removed at once (so nothing needs to scroll), a pinned copy of the
+  // envelope fades away behind, and the letter card starts exactly on top of the paper, then
+  // grows and unfolds into its place under the heading (a FLIP animation).
+  flyOut(btn) {
+    const paper = btn.querySelector('.env-paper');
+    const letter = $('#letter');
+    const from = paper.getBoundingClientRect();
+    const ghost = this.pinnedCopy(btn);
+
+    for (const id of ['#env-gif', '#envelope', '#tap-hint']) $(id).hidden = true;
+    letter.classList.add('flying');
+    this.showContents();
+    // The voice note and scroll cue fade in once the letter has landed
+    for (const id of ['#clip', '#scroll-cue']) $(id).style.animationDelay = '750ms';
+
+    // If she had scrolled down to reach the envelope, bring the letter's top into view
+    let to = letter.getBoundingClientRect();
+    if (to.top < 16) {
+      const root = document.documentElement;
+      root.style.scrollBehavior = 'auto';
+      window.scrollBy(0, to.top - 16);
+      root.style.scrollBehavior = '';
+      to = letter.getBoundingClientRect();
+    }
+
+    const scale = from.width / to.width;
+    const dx = (from.left + from.width / 2) - (to.left + to.width / 2);
+    const dy = from.top - to.top;
+    const hiddenBelow = Math.max(0, to.height - from.height / scale);
+    const ease = 'cubic-bezier(.45,0,.2,1)';
+
+    letter.style.transformOrigin = '50% 0';
+    const fly = letter.animate([
+      { transform: `translate(${dx}px, ${dy}px) scale(${scale})`, clipPath: `inset(0px 0px ${hiddenBelow}px 0px round 12px)` },
+      { transform: 'translate(0px, 0px) scale(1)', clipPath: 'inset(0px 0px 0px 0px round 22px)' },
+    ], { duration: 900, easing: ease });
+    // Keep .flying: removing it would restart the letter's CSS slide-up and make it flicker
+    fly.onfinish = () => { letter.style.transformOrigin = ''; };
+
+    ghost.animate([
+      { opacity: 1, transform: 'none' },
+      { opacity: 0, transform: 'translateY(-16px) scale(.88)' },
+    ], { duration: 650, delay: 100, easing: ease, fill: 'forwards' }).onfinish = () => ghost.remove();
+  },
+
+  // A copy of the opened envelope, pinned to the screen where the real one was and kept
+  // behind the page content, so it can fade away after the real one is removed
+  pinnedCopy(btn) {
+    const r = btn.getBoundingClientRect();
+    const ghost = btn.cloneNode(true);
+    ghost.removeAttribute('id');
+    ghost.setAttribute('aria-hidden', 'true');
+    ghost.tabIndex = -1;
+    ghost.classList.remove('popping');
+    ghost.classList.add('env-ghost');
+    ghost.querySelector('.env-paper').remove();       // the letter card takes its place
+    ghost.querySelector('.env-fx').replaceChildren();
+    Object.assign(ghost.style, {
+      left: r.left + 'px', top: r.top + 'px', width: r.width + 'px', height: r.height + 'px',
+    });
+    document.body.appendChild(ghost);
+    return ghost;
   },
 
   // Pops the GIF up in the middle of the screen, plays it once, then fades it away.
-  // Resolves once it has gone; tapping it skips to the end.
+  // Resolves as soon as it starts fading (so the next motion overlaps the fade);
+  // tapping it skips to the end.
   playOpeningGif(delay) {
     return new Promise((resolve) => {
       const pop = $('#kiss-pop');
@@ -300,11 +373,11 @@ const envelope = {
         finished = true;
         clearTimeout(timer);
         pop.classList.add('leaving');
+        resolve();
         setTimeout(() => {
           pop.hidden = true;
           pop.classList.remove('leaving');
           $('#kiss-img').removeAttribute('src');
-          resolve();
         }, 350);
       };
       setTimeout(() => {
