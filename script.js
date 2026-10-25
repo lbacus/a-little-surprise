@@ -204,7 +204,6 @@ const gate = {
       document.body.classList.replace('locked', 'unlocked');
       $('#site').hidden = false;
       window.scrollTo(0, 0);
-      envelope.companionArrive();
     };
     if (instant) return finish();
     $('#gate-card').classList.add('opening');
@@ -264,7 +263,6 @@ const envelope = {
     btn.setAttribute('aria-label', 'Envelope, opened');
     btn.setAttribute('aria-disabled', 'true');
     $('#env-gif').classList.add('gone');
-    this.companionLeave();
 
     if (calm) {
       btn.classList.add('open');
@@ -288,7 +286,7 @@ const envelope = {
     if (calm) {
       this.showContents();
       $('#letter').scrollIntoView({ behavior: 'auto', block: 'start' });
-      this.companionReturn();
+      this.companionDropIn();
       return;
     }
     btn.classList.add('paper-out');
@@ -342,7 +340,7 @@ const envelope = {
     ], { duration: 900, easing: ease });
     // Keep .flying: removing it would restart the letter's CSS slide-up and make it flicker
     fly.onfinish = () => { letter.style.transformOrigin = ''; };
-    setTimeout(() => this.companionReturn(), 900 + 200);    // just after the letter lands
+    setTimeout(() => this.companionDropIn(), 900 + 200);    // just after the letter lands
 
     ghost.animate([
       { opacity: 1, transform: 'none' },
@@ -369,29 +367,12 @@ const envelope = {
     return ghost;
   },
 
-  // The companion drifts down from above the screen on arrival, swaying, then bobs at
-  // the envelope's corner
-  companionArrive() {
+  // After the letter lands the companion drops in from the top of the screen on its
+  // parasol, then stays pinned to the bottom-right corner for the rest of the page.
+  companionDropIn() {
     const k = $('#companion');
     if (!this.companionUrl || !k.hidden) return;
     k.src = this.companionUrl;
-    this.companionDriftIn(k);
-  },
-
-  // After the letter has landed the companion comes back: it drifts down again and
-  // settles at the letter's top-right corner, scrolling with the letter from then on
-  companionReturn() {
-    const k = $('#companion');
-    if (!this.companionUrl) return;
-    k.getAnimations().forEach((a) => a.cancel());
-    k.classList.remove('flying-away', 'bobbing');
-    k.removeAttribute('style');
-    k.hidden = true;
-    $('#letter').appendChild(k);
-    this.companionDriftIn(k);
-  },
-
-  companionDriftIn(k) {
     k.hidden = false;
     if (reduceMotion.matches) {
       k.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 400 });
@@ -400,35 +381,28 @@ const envelope = {
     const fromY = -(k.getBoundingClientRect().bottom + 30);
     k.animate([
       { transform: `translate(-30px, ${fromY}px) rotate(-8deg)` },
-      { transform: `translate(20px, ${fromY * 0.55}px) rotate(7deg)`, offset: 0.35 },
+      { transform: `translate(22px, ${fromY * 0.55}px) rotate(7deg)`, offset: 0.35 },
       { transform: `translate(-12px, ${fromY * 0.2}px) rotate(-5deg)`, offset: 0.7 },
       { transform: 'translate(0px, 0px) rotate(0deg)' },
-    ], { duration: 2600, delay: 300, easing: 'cubic-bezier(.3,.6,.3,1)', fill: 'backwards' })
+    ], { duration: 2400, easing: 'cubic-bezier(.3,.6,.3,1)', fill: 'backwards' })
       .onfinish = () => k.classList.add('bobbing');
+    this.companionFollowScroll(k);
   },
 
-  // When the envelope opens, the companion floats up and away. It is pinned to the screen
-  // first so removing the envelope space later can't move it.
-  companionLeave() {
-    const k = $('#companion');
-    if (k.hidden) return;
-    const start = getComputedStyle(k).transform;   // wherever it is mid-bob or mid-arrival
-    k.classList.remove('bobbing');
-    k.getAnimations().forEach((a) => a.cancel());
-    const r = k.getBoundingClientRect();
-    Object.assign(k.style, { left: r.left + 'px', top: r.top + 'px', width: r.width + 'px' });
-    k.classList.add('flying-away');
-    document.body.appendChild(k);
-    const frames = reduceMotion.matches
-      ? [{ opacity: 1 }, { opacity: 0 }]
-      : [
-        { transform: start === 'none' ? 'none' : start, opacity: 1 },
-        { transform: 'translate(30px, -50px) rotate(6deg)', opacity: 1, offset: 0.25 },
-        { transform: `translate(70px, ${-(r.bottom * 0.6)}px) rotate(10deg)`, opacity: 1, offset: 0.7 },
-        { transform: `translate(90px, ${-(r.bottom + 60)}px) rotate(12deg)`, opacity: 0 },
-      ];
-    k.animate(frames, { duration: reduceMotion.matches ? 400 : 1800, easing: 'cubic-bezier(.45,0,.6,.6)', fill: 'forwards' })
-      .onfinish = () => { k.hidden = true; };
+  // While she scrolls, the companion lags behind and tilts like it's being pulled along
+  // on its parasol, then eases back once she stops
+  companionFollowScroll(k) {
+    let lastY = window.scrollY;
+    let settle;
+    window.addEventListener('scroll', () => {
+      const dy = window.scrollY - lastY;
+      lastY = window.scrollY;
+      const clamp = (v, max) => Math.max(-max, Math.min(max, v));
+      k.style.translate = `0 ${clamp(-dy * 0.8, 22)}px`;
+      k.style.rotate = `${clamp(dy * 0.5, 12)}deg`;
+      clearTimeout(settle);
+      settle = setTimeout(() => { k.style.translate = ''; k.style.rotate = ''; }, 140);
+    }, { passive: true });
   },
 
   // Pops the GIF up in the middle of the screen, plays it once, then fades it away.

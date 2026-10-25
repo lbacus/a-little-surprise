@@ -230,26 +230,24 @@ body::after {
   transition: opacity 800ms var(--ease), transform 800ms var(--ease);
 }
 .env-gif.gone { opacity: 0; transform: translateY(-24px) scale(.92); }
-/* Holds the envelope, its tap hint and the companion; the top margin leaves room for the open flap */
+/* Holds the envelope and its tap hint; the top margin leaves room for the open flap */
 .env-stage { position: relative; width: min(300px, 80vw); margin: 110px auto 0; }
 .env-gif:not([hidden]) + .env-stage { margin-top: 44px; }
 
-/* Companion GIF (e.g. a floating character) hovering at the envelope's top-right corner.
-   script.js floats it down on arrival and up and away when the envelope opens. */
+/* Companion GIF (e.g. a floating character). script.js drops it in from the top after the
+   letter lands; it then stays pinned to the bottom-right corner while she scrolls.
+   Taps pass straight through it. */
 .companion {
-  position: absolute;
-  z-index: 7;
-  width: 104px;
+  position: fixed;
+  z-index: 30;                       /* above the page, under the kiss blur and hearts */
+  right: 6px;
+  bottom: calc(14px + env(safe-area-inset-bottom));
+  width: 84px;
   height: auto;
-  right: -36px;
-  top: -70px;
   pointer-events: none;
+  transition: translate 500ms var(--ease), rotate 500ms var(--ease);
 }
 .companion.bobbing { animation: bob 3.2s ease-in-out infinite; }
-/* After the letter lands the companion returns to the letter's top-right corner */
-.letter { position: relative; }
-.letter .companion { top: -46px; right: -14px; }
-.companion.flying-away { position: fixed; right: auto; z-index: 30; }   /* under the kiss blur */
 @keyframes bob {
   0%, 100% { transform: translateY(0) rotate(0deg); }
   50%      { transform: translateY(-9px) rotate(3deg); }
