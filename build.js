@@ -79,6 +79,7 @@ async function main() {
   const songs = content.songs.map((s) => ({
     title: s.title || '',
     artist: s.artist || '',
+    cover: s.cover ? addMedia(...readMediaImage(s.cover)) : null,
     note: s.note || '',
     embed: spotifyEmbed(s.spotify),
   }));
