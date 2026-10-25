@@ -250,13 +250,24 @@ const envelope = {
     }
   },
 
+  // Timeline (ms after the tap): seal pops 0–260 · flap opens 260 · hearts float out 450
+  // · letter appears 1100 · page scrolls to the letter 1500. Reduced motion: just a quick fade.
   open() {
     const btn = $('#envelope');
-    btn.classList.add('open');
-    $('#env-gif').classList.add('gone');
+    const calm = reduceMotion.matches;
     btn.setAttribute('aria-label', 'Envelope, opened');
     btn.setAttribute('aria-disabled', 'true');
-    const wait = reduceMotion.matches ? 150 : 950;
+    $('#env-gif').classList.add('gone');
+
+    if (calm) {
+      btn.classList.add('open');
+    } else {
+      btn.classList.add('popping');
+      setTimeout(() => this.sealSparkles(btn), 150);
+      setTimeout(() => btn.classList.add('open'), 260);
+      setTimeout(() => this.floatHearts(btn), 450);
+    }
+
     setTimeout(() => {
       $('#letter').hidden = false;
       $('#clip').hidden = false;
@@ -264,8 +275,58 @@ const envelope = {
       $('#rest').hidden = false;
       scratch.resize();
       reveal.watch();
-      $('#letter').scrollIntoView({ behavior: reduceMotion.matches ? 'auto' : 'smooth', block: 'start' });
-    }, wait);
+    }, calm ? 150 : 1100);
+    setTimeout(() => {
+      $('#letter').scrollIntoView({ behavior: calm ? 'auto' : 'smooth', block: 'start' });
+    }, calm ? 200 : 1500);
+  },
+
+  // A small ring of sparkles where the heart seal was
+  sealSparkles(btn) {
+    const layer = btn.querySelector('.env-fx');
+    const colors = ['#E8789A', '#B9A6E6', '#F2A97E', '#F8C8DC'];
+    for (let i = 0; i < 7; i++) {
+      const s = icon('sparkle');
+      s.style.fill = colors[i % colors.length];
+      s.style.left = '50%';
+      s.style.top = '52%';
+      layer.appendChild(s);
+      const angle = (i / 7) * Math.PI * 2 + Math.random() * 0.4;
+      const dist = 34 + Math.random() * 18;
+      const x = Math.cos(angle) * dist, y = Math.sin(angle) * dist;
+      s.animate([
+        { transform: 'translate(-50%,-50%) scale(0)', opacity: 1, easing: 'ease-out' },
+        { transform: `translate(calc(-50% + ${x}px), calc(-50% + ${y}px)) scale(1)`, opacity: 1, offset: 0.55, easing: 'ease-in' },
+        { transform: `translate(calc(-50% + ${x * 1.2}px), calc(-50% + ${y * 1.2}px)) scale(0)`, opacity: 0 },
+      ], { duration: 520, easing: 'linear', fill: 'both' }).onfinish = () => s.remove();
+    }
+  },
+
+  // Hearts drifting up out of the open envelope
+  floatHearts(btn) {
+    const layer = btn.querySelector('.env-fx');
+    const colors = ['#E8789A', '#F8C8DC', '#D9CBF2', '#FFB59A', '#C94F78', '#EBA0BD'];
+    for (let i = 0; i < 8; i++) {
+      const h = icon('heart');
+      const size = 14 + Math.random() * 12;
+      h.style.width = h.style.height = size + 'px';
+      h.style.fill = colors[i % colors.length];
+      h.style.left = 30 + Math.random() * 40 + '%';
+      h.style.top = '22%';
+      layer.appendChild(h);
+      const rise = 140 + Math.random() * 90;
+      const sway = (Math.random() - 0.5) * 60;
+      h.animate([
+        { transform: 'translate(-50%, 0) scale(.5)', opacity: 0, easing: 'ease-out' },
+        { transform: `translate(calc(-50% + ${sway * 0.4}px), ${-rise * 0.35}px) scale(1)`, opacity: 1, offset: 0.3 },
+        { transform: `translate(calc(-50% + ${sway}px), ${-rise}px) scale(.9) rotate(${sway / 3}deg)`, opacity: 0 },
+      ], {
+        duration: 1100 + Math.random() * 300,
+        delay: i * 70,
+        easing: 'linear',
+        fill: 'both',
+      }).onfinish = () => h.remove();
+    }
   },
 };
 

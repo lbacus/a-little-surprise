@@ -239,7 +239,7 @@ body::after {
   background-clip: content-box;
   padding: 18px 16px;
   z-index: 2;
-  transition: transform 550ms var(--ease) 350ms;
+  transition: transform 550ms var(--ease) 250ms;
 }
 .env-front {
   inset: 0;
@@ -272,6 +272,16 @@ body::after {
 .envelope.open { cursor: default; }
 .envelope.open .env-flap  { transform: rotateX(180deg); z-index: 1; }
 .envelope.open .env-seal  { opacity: 0; animation: none; }
+.envelope.popping .env-seal { animation: seal-pop 260ms var(--ease) forwards; }
+@keyframes seal-pop {
+  0%   { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+  55%  { transform: translate(-50%, -50%) scale(1.4); opacity: 1; }
+  100% { transform: translate(-50%, -50%) scale(0); opacity: 0; }
+}
+
+/* Layer for the seal sparkles and floating hearts (filled by script.js) */
+.env-fx { inset: 0; z-index: 6; pointer-events: none; overflow: visible; }
+.env-fx svg { position: absolute; width: 16px; height: 16px; }
 .envelope.open .env-paper { transform: translateY(-46%); }
 
 .tap-hint { margin-top: 18px; color: var(--ink-soft); font-weight: 600; transition: opacity 300ms; }
