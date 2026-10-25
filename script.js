@@ -250,8 +250,9 @@ const envelope = {
     }
   },
 
-  // Timeline (ms after the tap): seal pops 0–260 · flap opens 260 · hearts float out 450
-  // · letter appears 1100 · page scrolls to the letter 1500. Reduced motion: just a quick fade.
+  // Timeline (ms after the tap): seal pops 0–260 · flap opens + hearts explode across the
+  // screen 260 · letter appears 1100 · page scrolls to the letter 1500.
+  // Reduced motion: just a quick fade.
   open() {
     const btn = $('#envelope');
     const calm = reduceMotion.matches;
@@ -264,8 +265,10 @@ const envelope = {
     } else {
       btn.classList.add('popping');
       setTimeout(() => this.sealSparkles(btn), 150);
-      setTimeout(() => btn.classList.add('open'), 260);
-      setTimeout(() => this.floatHearts(btn), 450);
+      setTimeout(() => {
+        btn.classList.add('open');
+        this.explode(btn);
+      }, 260);
     }
 
     setTimeout(() => {
@@ -285,14 +288,15 @@ const envelope = {
   sealSparkles(btn) {
     const layer = btn.querySelector('.env-fx');
     const colors = ['#E8789A', '#B9A6E6', '#F2A97E', '#F8C8DC'];
-    for (let i = 0; i < 7; i++) {
+    for (let i = 0; i < 10; i++) {
       const s = icon('sparkle');
       s.style.fill = colors[i % colors.length];
       s.style.left = '50%';
       s.style.top = '52%';
+      s.style.width = s.style.height = '20px';
       layer.appendChild(s);
-      const angle = (i / 7) * Math.PI * 2 + Math.random() * 0.4;
-      const dist = 34 + Math.random() * 18;
+      const angle = (i / 10) * Math.PI * 2 + Math.random() * 0.4;
+      const dist = 50 + Math.random() * 30;
       const x = Math.cos(angle) * dist, y = Math.sin(angle) * dist;
       s.animate([
         { transform: 'translate(-50%,-50%) scale(0)', opacity: 1, easing: 'ease-out' },
@@ -302,30 +306,55 @@ const envelope = {
     }
   },
 
-  // Hearts drifting up out of the open envelope
-  floatHearts(btn) {
-    const layer = btn.querySelector('.env-fx');
-    const colors = ['#E8789A', '#F8C8DC', '#D9CBF2', '#FFB59A', '#C94F78', '#EBA0BD'];
-    for (let i = 0; i < 8; i++) {
-      const h = icon('heart');
-      const size = 14 + Math.random() * 12;
-      h.style.width = h.style.height = size + 'px';
-      h.style.fill = colors[i % colors.length];
-      h.style.left = 30 + Math.random() * 40 + '%';
-      h.style.top = '22%';
-      layer.appendChild(h);
-      const rise = 140 + Math.random() * 90;
-      const sway = (Math.random() - 0.5) * 60;
-      h.animate([
-        { transform: 'translate(-50%, 0) scale(.5)', opacity: 0, easing: 'ease-out' },
-        { transform: `translate(calc(-50% + ${sway * 0.4}px), ${-rise * 0.35}px) scale(1)`, opacity: 1, offset: 0.3 },
-        { transform: `translate(calc(-50% + ${sway}px), ${-rise}px) scale(.9) rotate(${sway / 3}deg)`, opacity: 0 },
+  // Hearts, sparkles and stars blasting out of the envelope across the whole screen,
+  // with a shockwave ring and a little thump of the envelope
+  explode(btn) {
+    const layer = $('#burst');                       // full-screen layer above everything
+    const r = btn.getBoundingClientRect();
+    const cx = r.left + r.width / 2;
+    const cy = r.top + r.height * 0.3;               // the envelope's mouth
+    const reach = Math.max(window.innerWidth, window.innerHeight) * 0.55;
+    const colors = ['#E8789A', '#F8C8DC', '#D9CBF2', '#FFB59A', '#C94F78', '#B9A6E6', '#EBA0BD'];
+
+    btn.animate([{ transform: 'scale(1)' }, { transform: 'scale(1.07)' }, { transform: 'scale(1)' }],
+      { duration: 320, easing: 'ease-out' });
+
+    const ring = el('div', 'shockwave');
+    ring.style.left = cx + 'px';
+    ring.style.top = cy + 'px';
+    layer.appendChild(ring);
+    ring.animate([
+      { transform: 'translate(-50%,-50%) scale(.2)', opacity: 0.8 },
+      { transform: 'translate(-50%,-50%) scale(9)', opacity: 0 },
+    ], { duration: 600, easing: 'ease-out', fill: 'both' }).onfinish = () => ring.remove();
+
+    for (let i = 0; i < 42; i++) {
+      const kind = i % 10 < 7 ? 'heart' : i % 10 < 9 ? 'sparkle' : 'star';
+      const p = icon(kind);
+      const size = 14 + Math.random() * 24;
+      p.style.width = p.style.height = size + 'px';
+      p.style.fill = colors[i % colors.length];
+      p.style.left = cx + 'px';
+      p.style.top = cy + 'px';
+      layer.appendChild(p);
+
+      // Mostly upwards and sideways, a few downwards
+      const angle = i % 4 === 0 ? Math.random() * Math.PI * 2 : -Math.PI * (0.05 + Math.random() * 0.9);
+      const dist = 120 + Math.random() * reach;
+      const dx = Math.cos(angle) * dist;
+      const dy = Math.sin(angle) * dist;
+      const spin = (Math.random() - 0.5) * 300;
+      const fall = 90 + Math.random() * 120;        // gravity after the blast
+      p.animate([
+        { transform: 'translate(-50%,-50%) scale(.2)', opacity: 1, easing: 'cubic-bezier(.1,.8,.3,1)' },
+        { transform: `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px)) scale(1.15) rotate(${spin / 2}deg)`, opacity: 1, offset: 0.4, easing: 'ease-in' },
+        { transform: `translate(calc(-50% + ${dx * 1.1}px), calc(-50% + ${dy + fall}px)) scale(.8) rotate(${spin}deg)`, opacity: 0 },
       ], {
-        duration: 1100 + Math.random() * 300,
-        delay: i * 70,
+        duration: 1300 + Math.random() * 600,
+        delay: Math.random() * 80,
         easing: 'linear',
         fill: 'both',
-      }).onfinish = () => h.remove();
+      }).onfinish = () => p.remove();
     }
   },
 };
