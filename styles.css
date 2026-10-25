@@ -235,13 +235,13 @@ body::after {
 .env-gif:not([hidden]) + .env-stage { margin-top: 44px; }
 
 /* Companion GIF (e.g. a floating character). script.js drops it in from the top after the
-   letter lands; it then stays pinned to the bottom-right corner while she scrolls.
+   letter lands; it then stays pinned to the top-right corner while she scrolls.
    Taps pass straight through it. */
 .companion {
   position: fixed;
   z-index: 30;                       /* above the page, under the kiss blur and hearts */
   right: 6px;
-  bottom: calc(14px + env(safe-area-inset-bottom));
+  top: calc(10px + env(safe-area-inset-top));
   width: 84px;
   height: auto;
   pointer-events: none;
