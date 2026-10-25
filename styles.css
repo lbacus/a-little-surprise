@@ -500,7 +500,9 @@ body::after {
   position: fixed; inset: 0; z-index: 40;
   display: grid; place-items: center;
   padding: 16px;
-  background: rgba(255, 248, 240, .35);
+  background: rgba(255, 248, 240, .45);
+  -webkit-backdrop-filter: blur(10px);   /* Safari / iPhone */
+  backdrop-filter: blur(10px);           /* blurs the envelope behind the GIF */
   pointer-events: none;
   animation: fade 300ms ease both;
 }
