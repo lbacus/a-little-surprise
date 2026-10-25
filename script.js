@@ -45,6 +45,18 @@ const store = {
 };
 const STORE_KEY = 'sofia-key';
 
+// Preview-only diagnostics: on the local preview server (never on GitHub Pages),
+// report what the gate is doing to the server's console so problems on a phone are visible.
+const isLocalPreview = /^(localhost|127\.|192\.168\.|10\.|172\.(1[6-9]|2\d|3[01])\.)/.test(location.hostname);
+function debugLog(event, detail) {
+  if (!isLocalPreview) return;
+  try {
+    fetch('__log', { method: 'POST', body: JSON.stringify({ event, detail, ua: navigator.userAgent }) }).catch(() => {});
+  } catch { /* ignore */ }
+}
+window.addEventListener('error', (e) => debugLog('js-error', e.message + ' @ ' + e.filename + ':' + e.lineno));
+window.addEventListener('unhandledrejection', (e) => debugLog('promise-error', String(e.reason && (e.reason.stack || e.reason))));
+
 function shuffle(list) {
   const a = list.slice();
   for (let i = a.length - 1; i > 0; i--) {
@@ -121,6 +133,7 @@ const gate = {
       $('#nolink-msg').textContent = 'This page needs a secure (https) link to open. Please use the link from my message.';
       return;
     }
+    debugLog('gate-ready', { secure: window.isSecureContext, subtle: !!(window.crypto && window.crypto.subtle) });
     getPayload().catch(() => {}); // start downloading while she types
     $('#gate-form').addEventListener('submit', (e) => { e.preventDefault(); this.submit(); });
 
@@ -132,6 +145,7 @@ const gate = {
     if (this.busy) return;
     const input = $('#gate-input').value;
     const keys = DateKey.candidates(input);
+    debugLog('submit', { inputLength: input.length, keys });
     if (!keys.length) return this.wrong();
     await this.unlock(keys, false);
   },
@@ -144,17 +158,24 @@ const gate = {
     this.say(fromMemory ? 'Opening…' : '');
     try {
       const buffer = await getPayload();
+      debugLog('payload', { bytes: buffer.byteLength });
       for (const key of keys) {
+        const started = Date.now();
         const plain = await decrypt(buffer, key);
+        debugLog('decrypt', { key, ok: !!plain, ms: Date.now() - started });
         if (plain) {
           store.set(STORE_KEY, key);
-          return this.open(unpack(plain), fromMemory);
+          this.open(unpack(plain), fromMemory);
+          debugLog('unlocked');
+          return;
         }
       }
       if (fromMemory) { store.remove(STORE_KEY); this.say(''); } else this.wrong();
     } catch (err) {
       console.warn(err);
-      this.say("I couldn't load the page. Check your connection and try again.");
+      debugLog('unlock-error', String(err && (err.stack || err)));
+      this.say("I couldn't load the page. Check your connection and try again."
+        + (isLocalPreview ? ' (' + (err && err.message) + ')' : ''));
     } finally {
       this.busy = false;
       btn.disabled = false;
