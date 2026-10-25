@@ -26,6 +26,18 @@ The first time, the phone warns about the certificate: tap **Show Details → vi
 (iPhone) or **Advanced → Proceed** (Android). If Windows Firewall asks about Node, allow it on
 **Private networks**.
 
+## Deploying (GitHub Pages)
+
+Live at `https://lbacus.github.io/a-little-surprise/#k=<link secret>`. Pages serves the `gh-pages`
+branch, which is a copy of `dist/`. After rebuilding and committing:
+
+```powershell
+git push
+git push origin "$(git subtree split --prefix dist):refs/heads/gh-pages"
+```
+
+GitHub takes about a minute to update the live site.
+
 ## Editing content
 
 Everything is in `private/content.js`. `content.example.js` shows the format.
