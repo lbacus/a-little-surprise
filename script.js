@@ -288,6 +288,7 @@ const envelope = {
     if (calm) {
       this.showContents();
       $('#letter').scrollIntoView({ behavior: 'auto', block: 'start' });
+      this.companionReturn();
       return;
     }
     btn.classList.add('paper-out');
@@ -341,6 +342,7 @@ const envelope = {
     ], { duration: 900, easing: ease });
     // Keep .flying: removing it would restart the letter's CSS slide-up and make it flicker
     fly.onfinish = () => { letter.style.transformOrigin = ''; };
+    setTimeout(() => this.companionReturn(), 900 + 200);    // just after the letter lands
 
     ghost.animate([
       { opacity: 1, transform: 'none' },
@@ -373,6 +375,23 @@ const envelope = {
     const k = $('#companion');
     if (!this.companionUrl || !k.hidden) return;
     k.src = this.companionUrl;
+    this.companionDriftIn(k);
+  },
+
+  // After the letter has landed the companion comes back: it drifts down again and
+  // settles at the letter's top-right corner, scrolling with the letter from then on
+  companionReturn() {
+    const k = $('#companion');
+    if (!this.companionUrl) return;
+    k.getAnimations().forEach((a) => a.cancel());
+    k.classList.remove('flying-away', 'bobbing');
+    k.removeAttribute('style');
+    k.hidden = true;
+    $('#letter').appendChild(k);
+    this.companionDriftIn(k);
+  },
+
+  companionDriftIn(k) {
     k.hidden = false;
     if (reduceMotion.matches) {
       k.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 400 });

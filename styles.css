@@ -246,6 +246,9 @@ body::after {
   pointer-events: none;
 }
 .companion.bobbing { animation: bob 3.2s ease-in-out infinite; }
+/* After the letter lands the companion returns to the letter's top-right corner */
+.letter { position: relative; }
+.letter .companion { top: -46px; right: -14px; }
 .companion.flying-away { position: fixed; right: auto; z-index: 30; }   /* under the kiss blur */
 @keyframes bob {
   0%, 100% { transform: translateY(0) rotate(0deg); }
