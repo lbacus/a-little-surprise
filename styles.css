@@ -495,6 +495,36 @@ body::after {
 
 .footer { padding: 30px 20px 60px; text-align: center; font-size: 26px; color: var(--rose-deep); }
 
+/* Pop-up GIF while the envelope opens (tap to skip) */
+.kiss-pop {
+  position: fixed; inset: 0; z-index: 40;
+  display: grid; place-items: center;
+  padding: 16px;
+  background: rgba(255, 248, 240, .35);
+  pointer-events: none;
+  animation: fade 300ms ease both;
+}
+.kiss-pop.leaving { animation: fade-out 350ms ease both; }
+.kiss-card {
+  pointer-events: auto;
+  padding: 10px;
+  border: 0;
+  border-radius: 26px;
+  background: #fff;
+  box-shadow: var(--shadow);
+  cursor: pointer;
+  animation: kiss-in 450ms var(--ease) both;
+}
+.kiss-pop.leaving .kiss-card { animation: kiss-out 350ms var(--ease) both; }
+.kiss-card img { width: min(220px, 62vw); height: auto; border-radius: 18px; }
+@keyframes kiss-in {
+  0%   { opacity: 0; transform: scale(.4) rotate(-6deg); }
+  70%  { opacity: 1; transform: scale(1.06) rotate(1deg); }
+  100% { opacity: 1; transform: none; }
+}
+@keyframes kiss-out { to { opacity: 0; transform: scale(.9); } }
+@keyframes fade-out { to { opacity: 0; } }
+
 /* ---------- 10. Hearts burst ---------- */
 .burst { position: fixed; inset: 0; pointer-events: none; z-index: 50; overflow: hidden; }
 .burst svg { position: absolute; width: 22px; height: 22px; }
@@ -530,6 +560,8 @@ body::after {
   .jar.wiggle { animation: none; }
   .letter, .clip, .scroll-cue { animation: fade 300ms ease both; }
   .note { animation: fade 300ms ease both; }
+  .kiss-card { animation: fade 300ms ease both; }
+  .kiss-pop.leaving .kiss-card { animation: fade-out 300ms ease both; }
   .reveal, .polaroid.reveal { transform: rotate(var(--tilt, 0deg)); transition: opacity 400ms ease; }
 }
 @keyframes fade { from { opacity: 0; } to { opacity: 1; } }

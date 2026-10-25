@@ -9,6 +9,10 @@ module.exports = {
   // Shown above the closed envelope, fades away when she opens it. File in private/media/ ('' for none).
   envelopeGif: '',
 
+  // Pops up in the middle of the screen as the envelope opens, plays once, then the letter
+  // shows. Tapping it skips. File in private/media/ ('' for none).
+  openingGif: '',
+
   letter: {
     greeting: 'Dear Sofia,',
     paragraphs: [

@@ -85,6 +85,7 @@ async function main() {
 
   const site = {
     envelopeGif: content.envelopeGif ? addMedia(...readMediaImage(content.envelopeGif)) : null,
+    openingGif: content.openingGif ? prepareOpeningGif(content.openingGif, addMedia) : null,
     letter: content.letter,
     clip: clipOut,
     photos,
@@ -280,6 +281,26 @@ function readMediaImage(file) {
   const bytes = fs.readFileSync(src);
   if (bytes.length > 2 * 1024 * 1024) warn(`${file} is ${mb(bytes.length)}, which slows down the first load`);
   return [bytes, type];
+}
+
+// The pop-up GIF plus how long one play-through lasts, so the page shows it exactly once
+function prepareOpeningGif(file, addMedia) {
+  const [bytes, type] = readMediaImage(file);
+  if (type !== 'image/gif') throw new Error(`openingGif must be a .gif (got ${file})`);
+  return { media: addMedia(bytes, type), ms: gifDurationMs(bytes) };
+}
+
+// Adds up the frame delays in a GIF's Graphic Control Extensions.
+// Browsers play delays under 20ms as 100ms, so this does the same.
+function gifDurationMs(buf) {
+  let total = 0;
+  for (let i = 0; i < buf.length - 6; i++) {
+    if (buf[i] === 0x21 && buf[i + 1] === 0xf9 && buf[i + 2] === 0x04) {
+      const delay = buf.readUInt16LE(i + 4) * 10;
+      total += delay < 20 ? 100 : delay;
+    }
+  }
+  return Math.min(Math.max(total, 1500), 8000);
 }
 
 function prepareClip(clip) {
